@@ -7,11 +7,12 @@ import { prisma } from '@/lib/prisma'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { code: string } }
+  { params }: { params: Promise<{ code: string }> | { code: string } }
 ) {
   try {
+    const { code } = await Promise.resolve(params)
     const link = await prisma.link.findUnique({
-      where: { code: params.code },
+      where: { code },
     })
 
     if (!link) {
@@ -20,7 +21,7 @@ export async function GET(
 
     // Update clicks and lastClicked
     await prisma.link.update({
-      where: { code: params.code },
+      where: { code },
       data: {
         clicks: { increment: 1 },
         lastClicked: new Date(),
