@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// Route segment config - ensures this route is handled correctly on Vercel
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 /**
  * GET /api/links/:code
  * Gets stats for a specific link

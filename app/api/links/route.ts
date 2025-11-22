@@ -3,12 +3,25 @@ import { prisma } from '@/lib/prisma'
 import { createLinkSchema } from '@/lib/validations'
 import { generateShortcode } from '@/lib/utils'
 
+// Route segment config - ensures this route is handled correctly on Vercel
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 /**
  * POST /api/links
  * Creates a new short link
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check if Prisma Client is available
+    if (!prisma) {
+      console.error('Prisma Client is not initialized')
+      return NextResponse.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      )
+    }
+
     const body = await request.json()
     const validated = createLinkSchema.parse(body)
 
@@ -55,6 +68,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(link, { status: 201 })
   } catch (error: any) {
+    // Handle Zod validation errors
     if (error.name === 'ZodError') {
       return NextResponse.json(
         { error: error.errors[0].message },
@@ -62,9 +76,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Handle Prisma connection errors
+    if (error.code === 'P1001' || error.message?.includes('Can\'t reach database')) {
+      console.error('Database connection error:', error)
+      return NextResponse.json(
+        { error: 'Database connection failed. Please check your DATABASE_URL.' },
+        { status: 503 }
+      )
+    }
+
+    // Handle Prisma Client not generated errors
+    if (error.message?.includes('PrismaClient') || error.message?.includes('@prisma/client')) {
+      console.error('Prisma Client error:', error)
+      return NextResponse.json(
+        { error: 'Database client not initialized. Please check build logs.' },
+        { status: 503 }
+      )
+    }
+
     console.error('Error creating link:', error)
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+    })
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 500 }
     )
   }

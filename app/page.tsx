@@ -76,13 +76,27 @@ export default function Dashboard() {
         }),
       })
 
-      const data = await response.json()
+      // Handle non-JSON responses (like 404 from Vercel)
+      let data
+      try {
+        data = await response.json()
+      } catch (e) {
+        // If response is not JSON, it might be a Vercel error page
+        if (response.status === 404) {
+          setFormError('API endpoint not found. Please check your deployment and ensure DATABASE_URL is set in Vercel environment variables.')
+        } else {
+          setFormError(`Server error (${response.status}). Please check Vercel logs.`)
+        }
+        return
+      }
 
       if (!response.ok) {
         if (response.status === 409) {
           setFormError('This code already exists. Please choose another.')
+        } else if (response.status === 503) {
+          setFormError(data.error || 'Database connection failed. Please check your DATABASE_URL in Vercel settings.')
         } else {
-          setFormError(data.error || 'Failed to create link')
+          setFormError(data.error || `Failed to create link (${response.status})`)
         }
         return
       }
