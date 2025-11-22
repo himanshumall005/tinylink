@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { formatDate, truncateUrl } from '@/lib/utils'
@@ -26,11 +26,7 @@ export default function StatsPage() {
     process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
   const shortUrl = `${baseUrl}/${code}`
 
-  useEffect(() => {
-    fetchLink()
-  }, [code])
-
-  const fetchLink = async () => {
+  const fetchLink = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/links/${code}`)
@@ -50,7 +46,11 @@ export default function StatsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [code])
+
+  useEffect(() => {
+    fetchLink()
+  }, [fetchLink])
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shortUrl)

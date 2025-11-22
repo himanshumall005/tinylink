@@ -1,0 +1,6 @@
+# Ignore local development files
+.env
+.env.local
+.env*.local
+node_modules/.cache
+
