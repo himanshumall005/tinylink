@@ -3,7 +3,9 @@ import { prisma } from '@/lib/prisma'
 
 // Route segment config - ensures this route is handled correctly on Vercel
 export const dynamic = 'force-dynamic'
+export const dynamicParams = true
 export const runtime = 'nodejs'
+export const fetchCache = 'force-no-store'
 
 /**
  * GET /:code

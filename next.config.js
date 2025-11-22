@@ -8,6 +8,12 @@ const nextConfig = {
     }
     return config
   },
+  // Ensure dynamic routes are handled correctly
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
 }
 
 module.exports = nextConfig
