@@ -1,0 +1,61 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+
+/**
+ * GET /api/links/:code
+ * Gets stats for a specific link
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { code: string } }
+) {
+  try {
+    const link = await prisma.link.findUnique({
+      where: { code: params.code },
+    })
+
+    if (!link) {
+      return NextResponse.json({ error: 'Link not found' }, { status: 404 })
+    }
+
+    return NextResponse.json(link)
+  } catch (error) {
+    console.error('Error fetching link:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * DELETE /api/links/:code
+ * Deletes a link
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { code: string } }
+) {
+  try {
+    const link = await prisma.link.findUnique({
+      where: { code: params.code },
+    })
+
+    if (!link) {
+      return NextResponse.json({ error: 'Link not found' }, { status: 404 })
+    }
+
+    await prisma.link.delete({
+      where: { code: params.code },
+    })
+
+    return NextResponse.json({ message: 'Link deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting link:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
